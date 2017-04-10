@@ -3,7 +3,7 @@
 Add centered guides,
 extension by Samuel Dellicour,
 
-This extension creates horizontal and vertical guides through 
+This extension creates horizontal and vertical guides through
 the center of the document or the selected object
 
 # Licence
@@ -57,7 +57,7 @@ class addCenteredGuides(inkex.Effect):
 
 		# Define string option "--target"
 		self.OptionParser.add_option('--target',
-				action="store", type="string", 
+				action="store", type="string",
 				dest="target", default="document",
 				help="Target: document or selection")
 
@@ -77,8 +77,8 @@ class addCenteredGuides(inkex.Effect):
 		canvas_width  = self.unittouu(svg.get('width'))
 		canvas_height = self.unittouu(svg.attrib['height'])
 
-		# If a selected object exists, set guides to that object. 
-		# Otherwise, use document center guides		
+		# If a selected object exists, set guides to that object.
+		# Otherwise, use document center guides
 		if (target == "selection"):
 
 			# check if there is any selection
@@ -96,9 +96,9 @@ class addCenteredGuides(inkex.Effect):
 					stderr=PIPE,
 					)
 				p.wait()
-				q[query] = p.stdout.read()
+				q[query] =  self.unittouu(p.stdout.read() + 'px')
 
-			# get width, height, center of bounding box 
+			# get width, height, center of bounding box
 			obj_width = float(q['width'])
 			obj_height = float(q['height'])
 			center_x = float(q['x']) + obj_width/2
@@ -106,8 +106,8 @@ class addCenteredGuides(inkex.Effect):
 
 		else:
 
-			# Pick document center 
-			center_x = canvas_width/2 
+			# Pick document center
+			center_x = canvas_width/2
 			center_y = canvas_height/2
 
 		# call the function. Output.

@@ -72,7 +72,7 @@ class addMarginGuides(inkex.Effect):
 
 		# Define string option "--unit"
 		self.OptionParser.add_option('--unit',
-				action="store", type="string", 
+				action="store", type="string",
 				dest="unit", default="mm",
 				help="The unit of the values")
 
@@ -109,9 +109,9 @@ class addMarginGuides(inkex.Effect):
 	def effect(self):
 
 		# Get script's options values. Input.
-		
+
 		# Factor to multiply in order to get user units (pixels)
-		factor = inkex.unittouu('1' + self.options.unit)
+		factor = self.unittouu('1' + self.options.unit)
 
 		# boolean
 		same_margins = self.options.same_margins
@@ -129,8 +129,8 @@ class addMarginGuides(inkex.Effect):
 		svg = self.document.getroot()
 
 		# getting the width and height attributes of the canvas
-		canvas_width  = inkex.unittouu(svg.get('width'))
-		canvas_height = inkex.unittouu(svg.get('height'))
+		canvas_width  = self.unittouu(svg.get('width'))
+		canvas_height = self.unittouu(svg.get('height'))
 
 		# Get selection bounding box - TODO
 

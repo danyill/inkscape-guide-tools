@@ -3,7 +3,7 @@
 Add margin guides,
 by Samuel Dellicour,
 
-The extension adds document margin guides - guides at a certain distance 
+The extension adds document margin guides - guides at a certain distance
 from the borders of the document (or the bounding box of a selected object).
 
 # Licence
@@ -63,13 +63,13 @@ class addMarginGuides(inkex.Effect):
 
 		# Define string option "--unit"
 		self.OptionParser.add_option('--unit',
-				action="store", type="string", 
+				action="store", type="string",
 				dest="unit", default="mm",
 				help="The unit of the values")
 
 		# Define string option "--target"
 		self.OptionParser.add_option('--target',
-				action="store", type="string", 
+				action="store", type="string",
 				dest="target", default="document",
 				help="Target: document or selection")
 
@@ -106,7 +106,7 @@ class addMarginGuides(inkex.Effect):
 	def effect(self):
 
 		# Get script's options values.
-		
+
 		# Factor to multiply in order to get user units (pixels)
 		factor = self.unittouu('1' + self.options.unit)
 
@@ -156,7 +156,7 @@ class addMarginGuides(inkex.Effect):
 					stderr=PIPE,
 					)
 				p.wait()
-				q[query] = p.stdout.read()
+				q[query] = self.unittouu(p.stdout.read() + 'px')
 
 			# get center of bounding box
 			obj_width = float(q['width'])
@@ -177,7 +177,7 @@ class addMarginGuides(inkex.Effect):
 			guidetools.drawGuide(bottom_pos, "horizontal", namedview)
 			guidetools.drawGuide(left_pos, "vertical", namedview)
 
-		else:		
+		else:
 
 			# draw margin guides (if not zero)
 			if same_margins:
