@@ -31,7 +31,6 @@ import gettext
 _ = gettext.gettext
 import guidetools
 import csv
-import time
 try:
 	from subprocess import Popen, PIPE
 except ImportError:
@@ -120,7 +119,7 @@ class addMarginGuides(inkex.Effect):
 		# --no-convert-text-baseline-spacing
 		fieldnames = ['id', 'x', 'y', 'width', 'height']
 		# these options help. Without --no-convert-text-baseline-spacing
-		# Inkscape has a terrible tendency to hang.
+		# Inkscape has a terrible tendency to hang -- at least on Windows
 		p = Popen(
 			'inkscape -z --no-convert-text-baseline-spacing --vacuum-defs -S "%s"' % (self.args[-1]),
 			shell=True,
@@ -132,22 +131,16 @@ class addMarginGuides(inkex.Effect):
 		reader = csv.DictReader(iter(p.stdout.readline, ''),
 								fieldnames=fieldnames)
 
-		inkex.debug( _('ids:' + str(ids)) )
-
 		result = {}
 		for row in reader:
-			inkex.debug( _('row:' + str(row)) )
 			key = row.pop('id')
 			if key in ids:
 				result[key] = row
-
-		inkex.debug( _('result1:' + str(result)) )
 
 		for key, value in result.iteritems():
 			for k, v in value.iteritems():
 				value[k] =  float(self.unittouu(v))
 
-		inkex.debug( _('result2:' + str(result)) )
 		return result
 
 	def selection_bounding_box(self,ids):
@@ -155,10 +148,8 @@ class addMarginGuides(inkex.Effect):
 		r['x_min'] = r['x_max'] = r['y_min'] = r['y_max'] = None
 
  		selected_wi = self.get_id_dim_size(ids)
-		inkex.debug( _(str(selected_wi)) )
 
 		for i in selected_wi.keys():
-			inkex.debug( _('sbb:' + str(selected_wi[i])) )
 			r['x_min'] = self.find_minimums([ selected_wi[i]['x'] , r['x_min'] ])
 			r['x_max'] = self.find_maximums([ selected_wi[i]['x'] +
 										selected_wi[i]['width'], r['x_max'] ])
@@ -171,7 +162,6 @@ class addMarginGuides(inkex.Effect):
 		d['y'] = r['y_min']
 		d['width'] = r['x_max'] - r['x_min']
 		d['height'] = r['y_max'] - r['y_min']
-		inkex.debug( _('dd:' + str(d)) )
 		return d
 
 	def effect(self):
@@ -222,7 +212,6 @@ class addMarginGuides(inkex.Effect):
 				q = {}
 				q = self.selection_bounding_box(self.options.ids)
 
-			inkex.debug( _('q2:' + str(q)) )
 			# get center of bounding box
 			obj_width = q['width']
 			obj_height = q['height']

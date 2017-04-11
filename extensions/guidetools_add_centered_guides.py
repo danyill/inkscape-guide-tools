@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # IMPORT
 
 import inkex
+import csv
 import gettext
 _ = gettext.gettext
 import guidetools
@@ -59,45 +60,63 @@ class addCenteredGuides(inkex.Effect):
 				help="Target: document or selection")
 
 	def find_minimums(self, minimums):
-		potential_mins = (value for value in minimums if value is not None)
-		if potential_mins:
-			return min(potential_mins)
+	    potential_mins = (value for value in minimums if value is not None)
+	    if potential_mins:
+	        return min(potential_mins)
 
 	def find_maximums(self, minimums):
 		potential_mins = (value for value in minimums if value is not None)
 		if potential_mins:
 			return max(potential_mins)
 
-	def get_id_dim_size(self, id):
-		q = {'x':0, 'y':0, 'width':0, 'height':0}
-		for query in q.keys():
-			p = Popen(
-				'inkscape --query-%s --query-id=%s "%s"' % (query, id, self.args[-1], ),
-				shell=True,
-				stdout=PIPE,
-				stderr=PIPE,
-				)
-			p.wait()
-			q[query] = float(self.unittouu(p.stdout.read() + 'px'))
-		return q
+	def get_id_dim_size(self, ids):
+
+		# --no-convert-text-baseline-spacing
+		fieldnames = ['id', 'x', 'y', 'width', 'height']
+		# these options help. Without --no-convert-text-baseline-spacing
+		# Inkscape has a terrible tendency to hang -- at least on Windows
+		p = Popen(
+			'inkscape -z --no-convert-text-baseline-spacing --vacuum-defs -S "%s"' % (self.args[-1]),
+			shell=True,
+			stdout=PIPE,
+			stderr=PIPE,
+			)
+		p.wait()
+
+		reader = csv.DictReader(iter(p.stdout.readline, ''),
+								fieldnames=fieldnames)
+
+		result = {}
+		for row in reader:
+			key = row.pop('id')
+			if key in ids:
+				result[key] = row
+
+		for key, value in result.iteritems():
+			for k, v in value.iteritems():
+				value[k] =  float(self.unittouu(v))
+
+		return result
 
 	def selection_bounding_box(self,ids):
 		r = {}
 		r['x_min'] = r['x_max'] = r['y_min'] = r['y_max'] = None
 
-		for i in ids:
-			inf = self.get_id_dim_size(i)
-			r['x_min'] = self.find_minimums([inf['x'], r['x_min']])
-			r['x_max'] = self.find_maximums([inf['x']+inf['width'], r['x_max']])
-			r['y_min'] = self.find_minimums([inf['y'], r['y_min']])
-			r['y_max'] = self.find_maximums([inf['y']+inf['height'], r['y_max']])
+ 		selected_wi = self.get_id_dim_size(ids)
+
+		for i in selected_wi.keys():
+			r['x_min'] = self.find_minimums([ selected_wi[i]['x'] , r['x_min'] ])
+			r['x_max'] = self.find_maximums([ selected_wi[i]['x'] +
+										selected_wi[i]['width'], r['x_max'] ])
+			r['y_min'] = self.find_minimums([ selected_wi[i]['y'], r['y_min'] ])
+			r['y_max'] = self.find_maximums([ selected_wi[i]['y'] +
+										selected_wi[i]['height'], r['y_max'] ])
 
 		d = {}
 		d['x'] = r['x_min']
 		d['y'] = r['y_min']
 		d['width'] = r['x_max'] - r['x_min']
 		d['height'] = r['y_max'] - r['y_min']
-
 		return d
 
 	def effect(self):
