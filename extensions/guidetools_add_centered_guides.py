@@ -39,11 +39,8 @@ except ImportError:
 		)
 	exit(1)
 
-
 # To show debugging output, error messages, use
 #	inkex.debug( _(str(string)) )
-
-
 
 class addCenteredGuides(inkex.Effect):
 
@@ -61,6 +58,47 @@ class addCenteredGuides(inkex.Effect):
 				dest="target", default="document",
 				help="Target: document or selection")
 
+	def find_minimums(self, minimums):
+		potential_mins = (value for value in minimums if value is not None)
+		if potential_mins:
+			return min(potential_mins)
+
+	def find_maximums(self, minimums):
+		potential_mins = (value for value in minimums if value is not None)
+		if potential_mins:
+			return max(potential_mins)
+
+	def get_id_dim_size(self, id):
+		q = {'x':0, 'y':0, 'width':0, 'height':0}
+		for query in q.keys():
+			p = Popen(
+				'inkscape --query-%s --query-id=%s "%s"' % (query, id, self.args[-1], ),
+				shell=True,
+				stdout=PIPE,
+				stderr=PIPE,
+				)
+			p.wait()
+			q[query] = float(self.unittouu(p.stdout.read() + 'px'))
+		return q
+
+	def selection_bounding_box(self,ids):
+		r = {}
+		r['x_min'] = r['x_max'] = r['y_min'] = r['y_max'] = None
+
+		for i in ids:
+			inf = self.get_id_dim_size(i)
+			r['x_min'] = self.find_minimums([inf['x'], r['x_min']])
+			r['x_max'] = self.find_maximums([inf['x']+inf['width'], r['x_max']])
+			r['y_min'] = self.find_minimums([inf['y'], r['y_min']])
+			r['y_max'] = self.find_maximums([inf['y']+inf['height'], r['y_max']])
+
+		d = {}
+		d['x'] = r['x_min']
+		d['y'] = r['y_min']
+		d['width'] = r['x_max'] - r['x_min']
+		d['height'] = r['y_max'] - r['y_min']
+
+		return d
 
 	def effect(self):
 
@@ -81,28 +119,20 @@ class addCenteredGuides(inkex.Effect):
 		# Otherwise, use document center guides
 		if (target == "selection"):
 
-			# check if there is any selection
+			# If there is no selection, quit with message
 			if not self.options.ids:
-				inkex.errormsg(_("Please select an object first"))
+				inkex.errormsg(_("Please select at least one object first"))
 				exit()
 
-			# query bounding box, UPPER LEFT corner (?)
-			q = {'x':0, 'y':0, 'width':0, 'height':0}
-			for query in q.keys():
-				p = Popen(
-					'inkscape --query-%s --query-id=%s "%s"' % (query, self.options.ids[0], self.args[-1], ),
-					shell=True,
-					stdout=PIPE,
-					stderr=PIPE,
-					)
-				p.wait()
-				q[query] =  self.unittouu(p.stdout.read() + 'px')
+			else:
+				q = {}
+				q = self.selection_bounding_box(self.options.ids)
 
 			# get width, height, center of bounding box
-			obj_width = float(q['width'])
-			obj_height = float(q['height'])
-			center_x = float(q['x']) + obj_width/2
-			center_y = ( canvas_height - float(q['y']) - obj_height ) + obj_height/2
+			obj_width = q['width']
+			obj_height = q['height']
+			center_x = q['x'] + obj_width/2
+			center_y = ( canvas_height - q['y'] - obj_height ) + obj_height/2
 
 		else:
 

@@ -30,6 +30,8 @@ import inkex
 import gettext
 _ = gettext.gettext
 import guidetools
+import csv
+import time
 try:
 	from subprocess import Popen, PIPE
 except ImportError:
@@ -103,6 +105,75 @@ class addMarginGuides(inkex.Effect):
 				dest = 'left_margin',default = 'centered',
 				help = 'Left margin, distance from left border')
 
+	def find_minimums(self, minimums):
+	    potential_mins = (value for value in minimums if value is not None)
+	    if potential_mins:
+	        return min(potential_mins)
+
+	def find_maximums(self, minimums):
+		potential_mins = (value for value in minimums if value is not None)
+		if potential_mins:
+			return max(potential_mins)
+
+	def get_id_dim_size(self, ids):
+
+		# --no-convert-text-baseline-spacing
+		fieldnames = ['id', 'x', 'y', 'width', 'height']
+		# these options help. Without --no-convert-text-baseline-spacing
+		# Inkscape has a terrible tendency to hang.
+		p = Popen(
+			'inkscape -z --no-convert-text-baseline-spacing --vacuum-defs -S "%s"' % (self.args[-1]),
+			shell=True,
+			stdout=PIPE,
+			stderr=PIPE,
+			)
+		p.wait()
+
+		reader = csv.DictReader(iter(p.stdout.readline, ''),
+								fieldnames=fieldnames)
+
+		inkex.debug( _('ids:' + str(ids)) )
+
+		result = {}
+		for row in reader:
+			inkex.debug( _('row:' + str(row)) )
+			key = row.pop('id')
+			if key in ids:
+				result[key] = row
+
+		inkex.debug( _('result1:' + str(result)) )
+
+		for key, value in result.iteritems():
+			for k, v in value.iteritems():
+				value[k] =  float(self.unittouu(v))
+
+		inkex.debug( _('result2:' + str(result)) )
+		return result
+
+	def selection_bounding_box(self,ids):
+		r = {}
+		r['x_min'] = r['x_max'] = r['y_min'] = r['y_max'] = None
+
+ 		selected_wi = self.get_id_dim_size(ids)
+		inkex.debug( _(str(selected_wi)) )
+
+		for i in selected_wi.keys():
+			inkex.debug( _('sbb:' + str(selected_wi[i])) )
+			r['x_min'] = self.find_minimums([ selected_wi[i]['x'] , r['x_min'] ])
+			r['x_max'] = self.find_maximums([ selected_wi[i]['x'] +
+										selected_wi[i]['width'], r['x_max'] ])
+			r['y_min'] = self.find_minimums([ selected_wi[i]['y'], r['y_min'] ])
+			r['y_max'] = self.find_maximums([ selected_wi[i]['y'] +
+										selected_wi[i]['height'], r['y_max'] ])
+
+		d = {}
+		d['x'] = r['x_min']
+		d['y'] = r['y_min']
+		d['width'] = r['x_max'] - r['x_min']
+		d['height'] = r['y_max'] - r['y_min']
+		inkex.debug( _('dd:' + str(d)) )
+		return d
+
 	def effect(self):
 
 		# Get script's options values.
@@ -123,7 +194,8 @@ class addMarginGuides(inkex.Effect):
 		left_margin = float(self.options.left_margin) * factor
 
 		# getting parent tag of the guides
-		namedview = self.document.xpath('/svg:svg/sodipodi:namedview',namespaces=inkex.NSS)[0]
+		namedview = self.document.xpath('/svg:svg/sodipodi:namedview',
+										namespaces=inkex.NSS)[0]
 
 		# getting the main SVG document element (canvas)
 		svg = self.document.getroot()
@@ -143,28 +215,22 @@ class addMarginGuides(inkex.Effect):
 
 			# If there is no selection, quit with message
 			if not self.options.ids:
-				inkex.errormsg(_("Please select an object first"))
+				inkex.errormsg(_("Please select at least one object first"))
 				exit()
 
-			# query bounding box, upper left corner (?)
-			q = {'x':0, 'y':0, 'width':0, 'height':0}
-			for query in q.keys():
-				p = Popen(
-					'inkscape --query-%s --query-id=%s "%s"' % (query, self.options.ids[0], self.args[-1], ),
-					shell=True,
-					stdout=PIPE,
-					stderr=PIPE,
-					)
-				p.wait()
-				q[query] = self.unittouu(p.stdout.read() + 'px')
+			else:
+				q = {}
+				q = self.selection_bounding_box(self.options.ids)
 
+			inkex.debug( _('q2:' + str(q)) )
 			# get center of bounding box
-			obj_width = float(q['width'])
-			obj_height = float(q['height'])
-			obj_x = float(q['x']) + obj_width/2
-			obj_y = ( canvas_height - float(q['y']) - obj_height ) + obj_height/2
+			obj_width = q['width']
+			obj_height = q['height']
+			obj_x = q['x'] + obj_width/2
+			obj_y = ( canvas_height - q['y'] - obj_height ) + obj_height/2
 
-			# start position of guides (not sur why I need to add the last half width/height)
+			# start position of guides
+			# (not sure why I need to add the last half width/height)
 			top_pos = obj_y - top_margin + obj_height/2
 			right_pos = obj_x + obj_width - right_margin - obj_width/2
 			bottom_pos = obj_y - obj_height + bottom_margin + obj_height/2

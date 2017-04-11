@@ -4,14 +4,14 @@
 	<dependency type="executable" location="extensions">guidetools.py</dependency>
 	<dependency type="executable" location="extensions">guidetools_add_margin_guides.py</dependency>
 	<dependency type="executable" location="extensions">inkex.py</dependency>
-		
+
 		<param name="tab" type="notebook">
 			<page name="margin-guides" _gui-text="Margin Guides">
 
-				<param name="extension_description" type="description">Add guides at a certain distance (margin) from the borders of the page or the selected object.</param>
+				<param name="extension_description" type="description">Add guides at a certain distance (margin) from the borders of the page or the selected object(s).</param>
 				<param name="target" type="enum" _gui-text="Add guides to ">
 					<item value="document">the page</item>
-					<item value="selection">the selected object</item> 
+					<item value="selection">the selected object(s)</item>
 				</param>
 				<param name="unit" type="enum" _gui-text="Unit of values: ">
 					<item value="px">px</item>
