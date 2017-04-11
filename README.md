@@ -7,9 +7,9 @@ These are a series of [Inkscape](http://inkscape.org/) extensions related to gui
 
 ### 1. Add centered guides to page or object
 
-For quickly adding a horizontal AND vertical guide through the center of the page or a selected object.
+For quickly adding a horizontal AND vertical guide through the center of the page or any number of selected object
 
-Centered guides on a selected object:
+Centered guides on selected object(s):
 
 ![Add centered guides object](img/centeredguides1.png)
 
@@ -17,21 +17,21 @@ Centered guides on the page:
 
 ![Add centered guides page](img/centeredguides2.png)
 
-### 2. Add margin guides to page or object
+### 2. Add margin guides to page or object(s)
 
-With this extension you can add guides at a certain distance (_margin_) from the borders of the page or a (single) selected object. 
+With this extension you can add guides at a certain distance (_margin_) from the borders of the page or any number of selected objects.
 
 Margin guides to the page:
 
 ![Add margin guides](img/marginguides1.png)
 
-Margin guides to the bounding box of a selected object:
+Margin guides to the bounding box of selected object(s):
 
 ![Add margin guides](img/marginguides2.png)
 
-- Add them all at once for equal margins, or add different margins. 
-- Negative margins creates guides _outside_ the page/object borders ("bleed"). 
-- Zero margin guides (guides exactly on the border) of the page are not drawn - use **Edit > Guides around page** for that. 
+- Add them all at once for equal margins, or add different margins.
+- Negative margins creates guides _outside_ the page/object borders ("bleed").
+- Zero margin guides (guides exactly on the border) of the page are not drawn - use **Edit > Guides around page** for that.
 - Use any unit (pixels, mm, in, etc), independant of your page's units.
 
 ### 3. Add grid guides
@@ -60,7 +60,7 @@ _Limitation:_ The grid is calculated "inside out" - from the _column width_, gut
 
 ### 4. Remove selected guides
 
-Selectively remove all horizontal and/or vertical and/or angled (diagonal) guides. 
+Selectively remove all horizontal and/or vertical and/or angled (diagonal) guides.
 
 ![Remove selected guides](img/removeselectedguides.png)
 
@@ -70,7 +70,7 @@ Tip: To remove ALL guides from your page, instead of using this extension, just 
 
 ### Download and install
 
-[Download the latest version](https://github.com/sambody/inkscape-guide-tools/archive/master.zip), which is compatible with Inkscape 0.91 and NOT compatible with Inkscape 0.48 or earlier.
+[Download the latest version](https://github.com/sambody/inkscape-guide-tools/archive/master.zip), which is compatible with Inkscape 0.92 and NOT compatible with Inkscape 0.48 or earlier.
 
 For a version compatible with Inkscape 0.48 or ealier, [download the old version](https://github.com/sambody/inkscape-guide-tools/archive/1.0.zip), which has less features and will no longer be updated.
 
@@ -95,7 +95,7 @@ The extensions will all be available in the menu under **Extensions > Guide**.
 ### Tips
 
 - Need a **baseline grid** in addition to the generated columns ? Use Inkscape's grids under File > Document Properties > Grids. Set a new rectangular grid with for example Spacing X = 2000, Spacing Y = 14.
-- Using an extension often? In Inkscape 0.91, you can now easily add a **keyboard shortcut** to an extension. See Edit > Preferences > Interface > Keyboard shortcuts.
+- Using an extension often? In Inkscape 0.91+, you can now easily add a **keyboard shortcut** to an extension. See Edit > Preferences > Interface > Keyboard shortcuts.
 
 ### What's next
 
