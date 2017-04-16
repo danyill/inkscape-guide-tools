@@ -24,11 +24,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 # IMPORT
 
-import inkex
 import csv
+import inkex
 import gettext
 _ = gettext.gettext
 import guidetools
+import os
 try:
 	from subprocess import Popen, PIPE
 except ImportError:
@@ -71,27 +72,29 @@ class addCenteredGuides(inkex.Effect):
 
 	def get_id_dim_size(self, ids):
 
-		# --no-convert-text-baseline-spacing
 		fieldnames = ['id', 'x', 'y', 'width', 'height']
-		# these options help. Without --no-convert-text-baseline-spacing
-		# Inkscape has a terrible tendency to hang -- at least on Windows
 		p = Popen(
-			'inkscape -z --no-convert-text-baseline-spacing --vacuum-defs -S "%s"' % (self.args[-1]),
+			'inkscape --query-all "%s"' % (self.args[-1]),
 			shell=True,
 			stdout=PIPE,
 			stderr=PIPE,
 			)
-		p.wait()
+		# we assume the output is not
+		# so large that memory is an issue
+		f = p.communicate()[0] # receive stdout
 
-		reader = csv.DictReader(iter(p.stdout.readline, ''),
+		reader = csv.DictReader(iter(f.split(os.linesep)),
 								fieldnames=fieldnames)
 
 		result = {}
+
+		# get selected rows
 		for row in reader:
 			key = row.pop('id')
 			if key in ids:
 				result[key] = row
 
+		# convert to float and convert units
 		for key, value in result.iteritems():
 			for k, v in value.iteritems():
 				value[k] =  float(self.unittouu(v))
