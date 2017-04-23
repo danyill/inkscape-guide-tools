@@ -1,4 +1,4 @@
-<inkscape-extension>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
   <_name>Remove Selected Guides</_name>
   <id>samplify.guidetools_remove_selected_guides</id>
   <dependency type="executable" location="extensions">guidetools.py</dependency>
